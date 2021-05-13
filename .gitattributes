@@ -1,0 +1,36 @@
+# Sources
+*.c text
+*.h text
+*.cpp text
+*.hpp text
+*.lua text
+
+# Build Scripts
+Makefile* text
+*.bat text
+*.sh text
+
+# Compiled Object files
+*.o binary
+*.obj binary
+
+# Precompiled Headers
+*.gch binary
+*.pch binary
+
+# Compiled Dynamic libraries
+*.so binary
+*.dylib binary
+*.dll binary
+
+# Compiled Static libraries
+*.a binary
+*.lib binary
+
+# Other Binary data
+*.bin binary
+*.gba binary
+*.elf binary
+*.exe binary
+*.out binary
+*.app binary

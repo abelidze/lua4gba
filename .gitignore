@@ -1,0 +1,10 @@
+build/
+bin/
+dev/
+
+*.sublime-*
+*.html
+*.gbfs
+*.sav
+*.gba
+*.elf
