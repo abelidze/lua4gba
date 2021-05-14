@@ -40,6 +40,14 @@ Your gba.h should do this for you.
 extern "C" {
 #endif
 
+/* to make a 300 KB space called samples do GBFS_SPACE(samples, 300) */
+
+#define GBFS_PARTITION(filename, size) \
+const char filename[size] __attribute__ ((aligned (16))) = "PinEightGBFS\r\n\x1a\n";
+
+#define GBFS_SPACE(filename, kbytes) \
+const char filename[(kbytes)*1024] __attribute__ ((aligned (16))) = \
+  "PinEightGBFSSpace-" #filename "-" #kbytes ;
 
 typedef struct GBFS_FILE
 {
@@ -63,9 +71,14 @@ const void *skip_gbfs_file(const GBFS_FILE *file);
 const void *gbfs_get_obj(const GBFS_FILE *file,
                          const char *name,
                          u32 *len);
+const void *gbfs_get_nth_obj(const GBFS_FILE *file,
+                             size_t n,
+                             char *name,
+                             u32 *len);
 void *gbfs_copy_obj(void *dst,
                     const GBFS_FILE *file,
                     const char *name);
+size_t gbfs_count_objs(const GBFS_FILE *file);
 
 
 #ifdef __cplusplus

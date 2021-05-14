@@ -48,7 +48,7 @@ It will output a `"examples/demo.gba"` ROM, that you can run on your console or 
 Its source is rather self-explanatory:
 
 * It uses GBFS tool `"padbin"` to adjust the Lua4gba.gba ROM size to a multiple
-of 256 (this alignement is needed by GBFS to find its root entry).
+of 256 (this alignment is needed by GBFS to find its root entry).
 
 * It builds a temporary GBFS file containing the `"examples/demo.lua"` Lua source.
 

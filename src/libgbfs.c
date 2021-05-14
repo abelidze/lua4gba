@@ -1,9 +1,7 @@
-//Torlus - dynamic definition of GBFS_SEARCH_LIMIT 
-
 /* libgbfs.c
    access object in a GBFS file
 
-Copyright 2002 Damian Yerrick
+Copyright 2002-2004 Damian Yerrick
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -41,41 +39,50 @@ typedef unsigned long u32;
 #include "gbfs.h"
 
 /* change this to the end of your ROM, or to 0x02040000 for multiboot */
-
-//Torlus
-//#ifdef TARGET_PF_mb
-//#define GBFS_SEARCH_LIMIT ((const u32 *)0x02040000)
-//#else
-#define GBFS_SEARCH_LIMIT ((const u32 *)0x0a000000)
-//#endif
-
+#define GBFS_1ST_SEARCH_LIMIT ((const u32 *)0x02040000)
+#define GBFS_2ND_SEARCH_START ((const u32 *)0x08000000)
+#define GBFS_2ND_SEARCH_LIMIT ((const u32 *)0x0a000000)
 
 /* a power of two, less than or equal to the argument passed to
-   padbin */
+   padbin.  Increasing the stride makes find_first_gbfs_file()
+   faster at the cost of a slightly larger binary. */
 #define GBFS_ALIGNMENT  256
 
 const GBFS_FILE *find_first_gbfs_file(const void *start)
 {
   /* align the pointer */
   const u32 *here = (const u32 *)
-                      ((unsigned long)start & (-GBFS_ALIGNMENT));  
-  
-  const char rest_of_magic[] = "ightGBFS\r\n\032\n";
+                      ((unsigned long)start & (-GBFS_ALIGNMENT));
+  const char rest_of_magic[] = "ightGBFS\r\n\x1a\n";
 
-  /* while we haven't yet reached the end of the ROM space */
-  while(here < GBFS_SEARCH_LIMIT)
+  /* Linear-search first in multiboot space. */
+  while(here < GBFS_1ST_SEARCH_LIMIT)
   {
     /* We have to keep the magic code in two pieces; otherwise,
-       this function will find itself and think it's a GBFS file.
+       this function may find itself and think it's a GBFS file.
        This obviously won't work if your compiler stores this
        numeric literal just before the literal string, but Devkit
-       Advance seems to keep numeric constant pools separate enough
-       from string pools for this to work.
+       Advance R4 and R5 seem to keep numeric constant pools
+       separate enough from string pools for this to work.
     */
-    if(*here == 0x456e6950)  /* ASCII code for "PinE" */
+    if(*here == 0x456e6950)  /* ASCII code for little endian "PinE" */
     {
-      /* we're already after here;
-         if the rest of the magic matches, then we're through */
+      /* We've matched the first four bytes.
+         If the rest of the magic matches, then we've found a file. */
+      if(!memcmp(here + 1, rest_of_magic, 12))
+        return (const GBFS_FILE *)here;
+    }
+    here += GBFS_ALIGNMENT / sizeof(*here);
+  }
+
+  /* Now search in ROM space. */
+  if(here < GBFS_2ND_SEARCH_START)
+    here = GBFS_2ND_SEARCH_START;
+  while(here < GBFS_2ND_SEARCH_LIMIT)
+  {
+    /* Search loop same as above. */
+    if(*here == 0x456e6950)  /* ASCII code for little endian "PinE" */
+    {
       if(!memcmp(here + 1, rest_of_magic, 12))
         return (const GBFS_FILE *)here;
     }
@@ -103,9 +110,9 @@ const void *gbfs_get_obj(const GBFS_FILE *file,
 {
   char key[24] = {0};
 
-  GBFS_ENTRY *dirbase = (GBFS_ENTRY *)((char *)file + file->dir_off);
+  const GBFS_ENTRY *dirbase = (const GBFS_ENTRY *)((const char *)file + file->dir_off);
   size_t n_entries = file->dir_nmemb;
-  GBFS_ENTRY *here;
+  const GBFS_ENTRY *here;
 
   strncpy(key, name, 24);
 
@@ -117,6 +124,31 @@ const void *gbfs_get_obj(const GBFS_FILE *file,
 
   if(len)
     *len = here->len;
+  return (char *)file + here->data_offset;
+}
+
+
+const void *gbfs_get_nth_obj(const GBFS_FILE *file,
+                             size_t n,
+                             char *name,
+                             u32 *len)
+{
+  const GBFS_ENTRY *dirbase = (const GBFS_ENTRY *)((const char *)file + file->dir_off);
+  size_t n_entries = file->dir_nmemb;
+  const GBFS_ENTRY *here = dirbase + n;
+
+  if(n >= n_entries)
+    return NULL;
+
+  if(name)
+  {
+    strncpy(name, here->name, 24);
+    name[24] = 0;
+  }
+
+  if(len)
+    *len = here->len;
+
   return (char *)file + here->data_offset;
 }
 
@@ -133,4 +165,10 @@ void *gbfs_copy_obj(void *dst,
 
   memcpy(dst, src, len);
   return dst;
+}
+
+
+size_t gbfs_count_objs(const GBFS_FILE *file)
+{
+  return file ? file->dir_nmemb : 0;
 }
