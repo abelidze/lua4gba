@@ -20,8 +20,8 @@
 
 
 #ifdef GBA
-extern void write_string(const char *s);
-#define fputs(s,t) write_string(s)
+extern void con_write_string(const char *s);
+#define fputs(s,t) con_write_string(s)
 #endif
 
 /*
