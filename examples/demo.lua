@@ -10,4 +10,6 @@ print("*** Table test")
 t = { "ab", "cd", 5, 8, 13 }
 print("t = " .. tostring(t))
 print("type(t) = " .. type(t))
-table.foreachi(t, print)
+for i = 1, #t do
+	print("t[" .. i .. "] = " .. t[i])
+end

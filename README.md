@@ -9,7 +9,7 @@ scripts and removes binary from source distribution.
 Lua is a powerful scripting language with many high-level features, used in 
 many projects.
 
-This project is based on Lua 5.0.2 so is more up to date than [GBALua](https://www.gatesboy.com/Lua/Documentation/Download.html) 
+This project is based on Lua 5.2.4 so is more up to date than [GBALua](https://www.gatesboy.com/Lua/Documentation/Download.html) 
 (based on 4.0 version of Lua)
 and was made using devkitARM.
 
@@ -24,7 +24,7 @@ Contents
 Project structure :
 ```
 src/                           GBA-specific source, and Lua startup code.
-src/lua/                       Lua 5.0.2 source.
+src/lua/                       Submodule for Lua 5.2.4 sources.
 src/misc/                      Some stuff handy for porting purposes.
 examples/                      Sample Lua demo with script for building.
 include/                       Header files for lua and GBFS.
@@ -175,7 +175,7 @@ This project also uses some parts of third-party libraries listed below:
 - Lua4gba by Torlus, original author of this port.
     - https://torlus.github.io/
 
-- Lua 5.0.2, Lua team.
+- Lua 5.2.4, Lua team.
     - https://www.lua.org/
 
 - GBFS, Damian Yerrick.

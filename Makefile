@@ -15,15 +15,17 @@ export PATH	:=	$(DEVKITPRO)/tools/bin:$(DEVKITPRO)/devkitARM/bin:$(PATH)
 # TARGET is the name of the output, if this ends with _mb a multiboot image is generated
 # BUILD is the directory where object files & intermediate files will be placed
 # SOURCES is a list of directories containing source code
+# EXCLUDE is a list of source files which should be excluded from build
 # DATA is a list of directories containing data files
 # INCLUDES is a list of directories containing header files
 #---------------------------------------------------------------------------------
 TARGET		:=	lua4gba
 BUILD		:=	build
-SOURCES		:=	src src/lua src/lua/lib
+SOURCES		:=	src src/lua
+EXCLUDE 	:=	%/lua.c %/ltests.c
 DATA		:=
 GRAPHICS	:=
-INCLUDES	:=	include include/lua
+INCLUDES	:=	include src/lua
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -41,7 +43,7 @@ CFLAGS	+=	$(INCLUDE) -DLINK_$(LINKMODE) -DTARGET_$(TARGET) -DGBA
 CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	$(ARCH)
-LDFLAGS	=	$(ARCH) -Wl,-Map,$(notdir $@).map
+LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $@).map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
@@ -72,8 +74,10 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 #---------------------------------------------------------------------------------
 #	Collect source files
 #---------------------------------------------------------------------------------
-CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir \
+					$(filter-out $(EXCLUDE),$(wildcard $(dir)/*.c))))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir \
+					$(filter-out $(EXCLUDE),$(wildcard $(dir)/*.cpp))))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PCXFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.pcx)))
 BINFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.bin)))
@@ -116,7 +120,6 @@ demo: $(BUILD)
 
 #---------------------------------------------------------------------------------
 clean:
-	@echo Clean...
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba
 
 

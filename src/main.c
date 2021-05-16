@@ -4,10 +4,7 @@
 #include <gba_interrupt.h>
 #include <gba_sprites.h>
 #include <stdlib.h>
-
-#ifdef LINK_MBV2
-#include "mbv2.h"
-#endif
+#include <string.h>
 
 #ifdef LINK_XBOO
 #include "xcomms.h"
@@ -18,9 +15,6 @@
 #include "lua4gba.h"
 
 extern const u8 gba_font[];
-
-int argc = 1;
-char* argv[1] = { PROGNAME };
 
 int main()
 {
@@ -37,23 +31,25 @@ int main()
 
 	// Set arguments for lua's pmain()
 	Smain s;
-	s.argc = argc;
-	s.argv = argv;
+	s.length = 0;
 
 	// Find the embedded source, if any
 	const GBFS_FILE* gbfs = find_first_gbfs_file(find_first_gbfs_file);
 	if (gbfs != NULL) {
 		GBFS_ENTRY* entry = (GBFS_ENTRY*) ((char*) gbfs + gbfs->dir_off);
-		s.source = (char*) gbfs_get_obj(gbfs, entry->name, (u32*) &s.length);
+		s.name = entry->name;
+		s.source = (char*) gbfs_get_obj(gbfs, s.name, (u32*) &s.length);
 	}
 
 	// Initialize and run lua 
-	lua_State* l = lua_open();
+	lua_State* l = luaL_newstate();
 	if (l == NULL) {
-		l_message(argv[0], "cannot create state: not enough memory");
-		return 0;
+		l_message(LUA_PROGNAME, "cannot create state: not enough memory");
+		return 1;
 	}
-	report(lua_cpcall(l, &pmain, &s));
+	lua_pushcfunction(l, &pmain);
+	lua_pushlightuserdata(l, &s);
+	report(l, lua_pcall(l, 1, 0, 0));
 	lua_close(l);
 
 	// Loop forever

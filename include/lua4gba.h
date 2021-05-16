@@ -7,33 +7,24 @@ extern "C" {
 #include "lauxlib.h"
 #include "lualib.h"
 
-#ifndef PROGNAME
-#define PROGNAME  "lua4gba"
+#ifndef LUA_PROGNAME
+#define LUA_PROGNAME  "lua4gba"
 #endif
-#ifndef PROGVER
-#define PROGVER   "1.0.1"
-#endif
-
-#ifndef lua_userinit
-#define lua_userinit(L)   openstdlibs(L)
-#endif
-
-#ifndef LUA_EXTRALIBS
-#define LUA_EXTRALIBS /* empty */
+#ifndef LUA_PROGVER
+#define LUA_PROGVER   "1.1.0"
 #endif
 
 typedef struct Smain {
-  int argc;
-  char** argv;
+  char* name;
   char* source;
   int length;
   int status;
 } Smain;
 
-int pmain(lua_State* l);
-int report(int status);
+int pmain(lua_State* L);
+int report(lua_State* L, int status);
 void l_message(const char* pname, const char* msg);
-int dostring(const char* s, const char* name);
+int dostring(lua_State* L, const char* s, int len, const char* name);
 
 #ifdef __cplusplus
 }    // extern "C"
